@@ -1,5 +1,5 @@
 // ===== Heartbeat BPM Player =====
-// 心音サンプル (heartbeat.mp4) を指定BPMでループ再生する
+// 心音サンプル再生 + Web Serial API でセンサー連携
 
 class HeartbeatPlayer {
     constructor() {
@@ -11,6 +11,13 @@ class HeartbeatPlayer {
         this.nextBeatTime = 0;
         this.schedulerInterval = null;
         this.gainNode = null;
+        this.mode = 'manual'; // 'manual' or 'sensor'
+
+        // Serial
+        this.serialPort = null;
+        this.serialReader = null;
+        this.serialConnected = false;
+        this.beatTimestamps = []; // BPM計算用
 
         // DOM elements
         this.bpmSlider = document.getElementById('bpmSlider');
@@ -26,8 +33,21 @@ class HeartbeatPlayer {
         this.ecgCanvas = document.getElementById('ecgCanvas');
         this.ecgCtx = this.ecgCanvas.getContext('2d');
 
+        // Mode elements
+        this.manualModeBtn = document.getElementById('manualModeBtn');
+        this.sensorModeBtn = document.getElementById('sensorModeBtn');
+        this.sensorBtn = document.getElementById('sensorBtn');
+        this.sensorBtnText = document.getElementById('sensorBtnText');
+        this.sensorStatus = document.getElementById('sensorStatus');
+        this.statusDot = document.getElementById('statusDot');
+        this.statusText = document.getElementById('statusText');
+
         // Preset buttons
         this.presetBtns = document.querySelectorAll('.preset-btn');
+
+        // Manual mode controls (to hide/show)
+        this.sliderContainer = document.querySelector('.slider-container');
+        this.presetsContainer = document.querySelector('.presets');
 
         this.bindEvents();
         this.initECG();
@@ -79,11 +99,20 @@ class HeartbeatPlayer {
             });
         });
 
+        // Mode toggle
+        this.manualModeBtn.addEventListener('click', () => this.setMode('manual'));
+        this.sensorModeBtn.addEventListener('click', () => this.setMode('sensor'));
+
+        // Sensor connect
+        this.sensorBtn.addEventListener('click', () => this.toggleSerial());
+
         // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
-                this.toggle();
+                if (this.mode === 'manual') {
+                    this.toggle();
+                }
             }
         });
     }
@@ -92,6 +121,46 @@ class HeartbeatPlayer {
         this.presetBtns.forEach(btn => {
             btn.classList.toggle('active', parseInt(btn.dataset.bpm) === this.bpm);
         });
+    }
+
+    // ===== モード切替 =====
+    setMode(mode) {
+        // 現在のモードを停止
+        if (this.mode === 'manual' && this.isPlaying) {
+            this.stop();
+        }
+        if (this.mode === 'sensor' && this.serialConnected) {
+            this.disconnectSerial();
+        }
+
+        this.mode = mode;
+
+        // UI切替
+        this.manualModeBtn.classList.toggle('active', mode === 'manual');
+        this.sensorModeBtn.classList.toggle('active', mode === 'sensor');
+
+        if (mode === 'manual') {
+            // 手動モードのUI表示
+            this.playBtn.classList.remove('hidden');
+            this.sliderContainer.classList.remove('hidden');
+            this.presetsContainer.classList.remove('hidden');
+            this.sensorBtn.classList.add('hidden');
+            this.sensorStatus.classList.add('hidden');
+        } else {
+            // センサーモードのUI表示
+            this.playBtn.classList.add('hidden');
+            this.sliderContainer.classList.add('hidden');
+            this.presetsContainer.classList.add('hidden');
+            this.sensorBtn.classList.remove('hidden');
+            this.sensorStatus.classList.remove('hidden');
+
+            // Web Serial API サポートチェック
+            if (!('serial' in navigator)) {
+                this.statusText.textContent = 'このブラウザはWeb Serial非対応です';
+                this.statusDot.className = 'status-dot error';
+                this.sensorBtn.disabled = true;
+            }
+        }
     }
 
     initAudioContext() {
@@ -104,7 +173,6 @@ class HeartbeatPlayer {
     }
 
     // ===== 心音再生 =====
-    // AudioBufferSourceNode で heartbeat.mp4 を1回再生
     playHeartbeatSound(time) {
         if (!this.audioBuffer) return;
 
@@ -115,12 +183,149 @@ class HeartbeatPlayer {
         source.start(time);
     }
 
-    // ===== スケジューラ =====
-    // 正確なタイミングで心音を再生するための先読みスケジューラ
+    // センサーモード用: 即時再生
+    playHeartbeatNow() {
+        if (!this.audioBuffer) return;
+        this.initAudioContext();
+
+        if (!this.gainNode) {
+            this.gainNode = this.audioCtx.createGain();
+            this.gainNode.gain.value = this.volume;
+            this.gainNode.connect(this.audioCtx.destination);
+        }
+
+        const ctx = this.audioCtx;
+        const source = ctx.createBufferSource();
+        source.buffer = this.audioBuffer;
+        source.connect(this.gainNode);
+        source.start(0);
+
+        this.triggerBeatVisual();
+        this.updateBPMFromSensor();
+    }
+
+    // ===== BPM自動計算（センサーモード） =====
+    updateBPMFromSensor() {
+        const now = performance.now();
+        this.beatTimestamps.push(now);
+
+        // 最新10拍分だけ保持
+        if (this.beatTimestamps.length > 10) {
+            this.beatTimestamps.shift();
+        }
+
+        // 最低2拍必要
+        if (this.beatTimestamps.length >= 2) {
+            const intervals = [];
+            for (let i = 1; i < this.beatTimestamps.length; i++) {
+                intervals.push(this.beatTimestamps[i] - this.beatTimestamps[i - 1]);
+            }
+            const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+            const bpm = Math.round(60000 / avgInterval);
+
+            if (bpm >= 30 && bpm <= 220) {
+                this.bpm = bpm;
+                this.bpmValue.textContent = bpm;
+            }
+        }
+    }
+
+    // ===== Web Serial API =====
+    async toggleSerial() {
+        if (this.serialConnected) {
+            await this.disconnectSerial();
+        } else {
+            await this.connectSerial();
+        }
+    }
+
+    async connectSerial() {
+        try {
+            this.serialPort = await navigator.serial.requestPort();
+            await this.serialPort.open({ baudRate: 115200 });
+
+            this.serialConnected = true;
+            this.isPlaying = true;
+            this.sensorBtnText.textContent = '切断';
+            this.statusDot.className = 'status-dot connected';
+            this.statusText.textContent = '接続中 - 心拍を待っています...';
+            this.beatTimestamps = [];
+
+            this.readSerial();
+        } catch (err) {
+            console.error('シリアル接続エラー:', err);
+            this.statusDot.className = 'status-dot error';
+            this.statusText.textContent = '接続失敗: ' + err.message;
+        }
+    }
+
+    async disconnectSerial() {
+        this.serialConnected = false;
+        this.isPlaying = false;
+
+        try {
+            if (this.serialReader) {
+                await this.serialReader.cancel();
+                this.serialReader = null;
+            }
+            if (this.serialPort) {
+                await this.serialPort.close();
+                this.serialPort = null;
+            }
+        } catch (err) {
+            console.error('シリアル切断エラー:', err);
+        }
+
+        this.sensorBtnText.textContent = 'センサー接続';
+        this.statusDot.className = 'status-dot';
+        this.statusText.textContent = '未接続';
+
+        // Disconnect gain
+        if (this.gainNode) {
+            this.gainNode.disconnect();
+            this.gainNode = null;
+        }
+    }
+
+    async readSerial() {
+        const decoder = new TextDecoderStream();
+        const readableStreamClosed = this.serialPort.readable.pipeTo(decoder.writable);
+        this.serialReader = decoder.readable.getReader();
+
+        let buffer = '';
+
+        try {
+            while (this.serialConnected) {
+                const { value, done } = await this.serialReader.read();
+                if (done) break;
+
+                buffer += value;
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // 未完成の行を残す
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed === 'B') {
+                        // 心拍検出!
+                        this.playHeartbeatNow();
+                        this.statusText.textContent = `接続中 - ${this.bpm} BPM`;
+                    }
+                }
+            }
+        } catch (err) {
+            if (this.serialConnected) {
+                console.error('シリアル読み取りエラー:', err);
+                this.statusDot.className = 'status-dot error';
+                this.statusText.textContent = '読み取りエラー';
+            }
+        }
+    }
+
+    // ===== スケジューラ（手動モード） =====
     startScheduler() {
         const ctx = this.audioCtx;
         this.nextBeatTime = ctx.currentTime + 0.05;
-        const scheduleAheadTime = 0.1; // 100ms先まで先読み
+        const scheduleAheadTime = 0.1;
 
         this.schedulerInterval = setInterval(() => {
             while (this.nextBeatTime < ctx.currentTime + scheduleAheadTime) {
@@ -155,27 +360,22 @@ class HeartbeatPlayer {
     }
 
     triggerBeatVisual() {
-        // Heart beat animation
         this.heartIcon.classList.remove('beat');
-        void this.heartIcon.offsetWidth; // force reflow
+        void this.heartIcon.offsetWidth;
         this.heartIcon.classList.add('beat');
 
-        // Glow
         this.heartGlow.classList.remove('active');
         void this.heartGlow.offsetWidth;
         this.heartGlow.classList.add('active');
 
-        // Ring
         this.heartRing.classList.remove('active');
         void this.heartRing.offsetWidth;
         this.heartRing.classList.add('active');
 
-        // Background pulse
         this.bgPulse.classList.remove('active');
         void this.bgPulse.offsetWidth;
         this.bgPulse.classList.add('active');
 
-        // ECG spike
         this.triggerECGSpike();
     }
 
@@ -218,30 +418,24 @@ class HeartbeatPlayer {
         ctx.clearRect(0, 0, w, h);
 
         if (this.isPlaying) {
-            // Generate ECG-like waveform data
             const speed = 2;
             for (let i = 0; i < speed; i++) {
                 let val = 0;
-
-                // Check if there's a spike to display
                 for (let j = this.ecgSpikeQueue.length - 1; j >= 0; j--) {
                     const spikeStart = this.ecgSpikeQueue[j];
                     const dist = this.ecgPos - spikeStart;
                     if (dist >= 0 && dist < 40) {
                         val += this.ecgWaveform(dist);
                     }
-                    // Remove old spikes
                     if (dist > 60) {
                         this.ecgSpikeQueue.splice(j, 1);
                     }
                 }
-
                 this.ecgData[this.ecgPos % this.ecgData.length] = val;
                 this.ecgPos++;
             }
         }
 
-        // Draw the ECG line
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(229, 62, 107, 0.6)';
         ctx.lineWidth = 1.5;
@@ -254,7 +448,6 @@ class HeartbeatPlayer {
             const dataIdx = (startIdx + i) % len;
             const x = i;
             const y = mid - this.ecgData[dataIdx] * (mid * 0.8);
-
             if (i === 0) {
                 ctx.moveTo(x, y);
             } else {
@@ -263,7 +456,6 @@ class HeartbeatPlayer {
         }
         ctx.stroke();
 
-        // Fade effect at edges
         const gradient = ctx.createLinearGradient(0, 0, w, 0);
         gradient.addColorStop(0, 'rgba(10, 10, 18, 1)');
         gradient.addColorStop(0.05, 'rgba(10, 10, 18, 0)');
@@ -276,18 +468,17 @@ class HeartbeatPlayer {
     }
 
     ecgWaveform(t) {
-        // Simplified PQRST waveform
-        if (t < 4) return 0.05 * Math.sin(t * Math.PI / 4);           // P wave
-        if (t < 6) return 0;                                            // PR segment
-        if (t < 8) return -0.15 * Math.sin((t - 6) * Math.PI / 2);    // Q wave
-        if (t < 12) return 1.0 * Math.sin((t - 8) * Math.PI / 4);     // R wave
-        if (t < 14) return -0.2 * Math.sin((t - 12) * Math.PI / 2);   // S wave
-        if (t < 18) return 0;                                           // ST segment
-        if (t < 26) return 0.15 * Math.sin((t - 18) * Math.PI / 8);   // T wave
+        if (t < 4) return 0.05 * Math.sin(t * Math.PI / 4);
+        if (t < 6) return 0;
+        if (t < 8) return -0.15 * Math.sin((t - 6) * Math.PI / 2);
+        if (t < 12) return 1.0 * Math.sin((t - 8) * Math.PI / 4);
+        if (t < 14) return -0.2 * Math.sin((t - 12) * Math.PI / 2);
+        if (t < 18) return 0;
+        if (t < 26) return 0.15 * Math.sin((t - 18) * Math.PI / 8);
         return 0;
     }
 
-    // ===== Toggle =====
+    // ===== Toggle (手動モード) =====
     toggle() {
         if (this.isPlaying) {
             this.stop();
@@ -303,7 +494,6 @@ class HeartbeatPlayer {
         }
         this.initAudioContext();
 
-        // Master gain node
         this.gainNode = this.audioCtx.createGain();
         this.gainNode.gain.value = this.volume;
         this.gainNode.connect(this.audioCtx.destination);
@@ -322,13 +512,11 @@ class HeartbeatPlayer {
         this.playBtn.style.background = '';
         this.stopScheduler();
 
-        // Disconnect gain
         if (this.gainNode) {
             this.gainNode.disconnect();
             this.gainNode = null;
         }
 
-        // Clear visuals
         this.heartIcon.classList.remove('beat');
         this.heartGlow.classList.remove('active');
         this.heartRing.classList.remove('active');

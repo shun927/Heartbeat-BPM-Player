@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,22 +11,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="app">
     <!-- Background pulse effect -->
     <div class="bg-pulse" id="bgPulse"></div>
 
     <header class="header">
-      <h1>♥ Heartbeat</h1>
+      <h1>Heartbeat</h1>
       <p class="subtitle">心音プレーヤー</p>
     </header>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="manualModeBtn" data-mode="manual">手動</button>
+      <button class="mode-btn" id="sensorModeBtn" data-mode="sensor">センサー</button>
+    </div>
 
     <main class="main">
       <!-- Heart visualization -->
       <div class="heart-container" id="heartContainer">
         <div class="heart-glow" id="heartGlow"></div>
         <svg class="heart-icon" id="heartIcon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/>
+          <path
+            d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z" />
         </svg>
         <div class="heart-ring" id="heartRing"></div>
       </div>
@@ -39,14 +48,7 @@
       <!-- BPM Slider -->
       <div class="slider-container">
         <span class="slider-min">40</span>
-        <input 
-          type="range" 
-          id="bpmSlider" 
-          min="40" 
-          max="200" 
-          value="72" 
-          class="bpm-slider"
-        >
+        <input type="range" id="bpmSlider" min="40" max="200" value="72" class="bpm-slider">
         <span class="slider-max">200</span>
       </div>
 
@@ -61,20 +63,33 @@
       <!-- Volume control -->
       <div class="volume-container">
         <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
         </svg>
         <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider">
       </div>
 
-      <!-- Play button -->
+      <!-- Play button (manual mode) -->
       <button class="play-btn" id="playBtn">
         <svg class="play-icon" id="playIcon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
+          <path d="M8 5v14l11-7z" />
         </svg>
         <svg class="stop-icon hidden" id="stopIcon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 6h12v12H6z"/>
+          <path d="M6 6h12v12H6z" />
         </svg>
       </button>
+
+      <!-- Sensor connect button (sensor mode) -->
+      <button class="sensor-btn hidden" id="sensorBtn">
+        <svg class="sensor-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+        </svg>
+        <span id="sensorBtnText">センサー接続</span>
+      </button>
+      <div class="sensor-status hidden" id="sensorStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">未接続</span>
+      </div>
     </main>
 
     <!-- ECG line at bottom -->
@@ -85,4 +100,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
