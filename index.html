@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heartbeat BPM Player</title>
+  <meta name="description" content="指定したBPMで心音を聴けるWebアプリ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Background pulse effect -->
+    <div class="bg-pulse" id="bgPulse"></div>
+
+    <header class="header">
+      <h1>♥ Heartbeat</h1>
+      <p class="subtitle">心音プレーヤー</p>
+    </header>
+
+    <main class="main">
+      <!-- Heart visualization -->
+      <div class="heart-container" id="heartContainer">
+        <div class="heart-glow" id="heartGlow"></div>
+        <svg class="heart-icon" id="heartIcon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/>
+        </svg>
+        <div class="heart-ring" id="heartRing"></div>
+      </div>
+
+      <!-- BPM Display -->
+      <div class="bpm-display">
+        <span class="bpm-value" id="bpmValue">72</span>
+        <span class="bpm-label">BPM</span>
+      </div>
+
+      <!-- BPM Slider -->
+      <div class="slider-container">
+        <span class="slider-min">40</span>
+        <input 
+          type="range" 
+          id="bpmSlider" 
+          min="40" 
+          max="200" 
+          value="72" 
+          class="bpm-slider"
+        >
+        <span class="slider-max">200</span>
+      </div>
+
+      <!-- Preset buttons -->
+      <div class="presets">
+        <button class="preset-btn" data-bpm="60">安静時<br><small>60</small></button>
+        <button class="preset-btn active" data-bpm="72">通常<br><small>72</small></button>
+        <button class="preset-btn" data-bpm="100">運動時<br><small>100</small></button>
+        <button class="preset-btn" data-bpm="140">激しい運動<br><small>140</small></button>
+      </div>
+
+      <!-- Volume control -->
+      <div class="volume-container">
+        <svg class="volume-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+        </svg>
+        <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider">
+      </div>
+
+      <!-- Play button -->
+      <button class="play-btn" id="playBtn">
+        <svg class="play-icon" id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg class="stop-icon hidden" id="stopIcon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 6h12v12H6z"/>
+        </svg>
+      </button>
+    </main>
+
+    <!-- ECG line at bottom -->
+    <div class="ecg-container">
+      <canvas id="ecgCanvas" width="800" height="80"></canvas>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
