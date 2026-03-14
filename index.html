@@ -25,7 +25,8 @@
     <!-- Mode toggle -->
     <div class="mode-toggle">
       <button class="mode-btn active" id="manualModeBtn" data-mode="manual">手動</button>
-      <button class="mode-btn" id="sensorModeBtn" data-mode="sensor">センサー</button>
+      <button class="mode-btn" id="pulseSensorModeBtn" data-mode="pulseSensor">心拍センサー</button>
+      <button class="mode-btn" id="distanceSensorModeBtn" data-mode="distanceSensor">距離センサー</button>
     </div>
 
     <main class="main">
@@ -78,17 +79,69 @@
         </svg>
       </button>
 
-      <!-- Sensor connect button (sensor mode) -->
-      <button class="sensor-btn hidden" id="sensorBtn">
+      <!-- Sensor connect button (pulse sensor mode) -->
+      <button class="sensor-btn hidden" id="pulseSensorBtn">
         <svg class="sensor-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
           <path
             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
         </svg>
-        <span id="sensorBtnText">センサー接続</span>
+        <span id="pulseSensorBtnText">心拍センサー接続</span>
       </button>
-      <div class="sensor-status hidden" id="sensorStatus">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-text" id="statusText">未接続</span>
+      <div class="sensor-status hidden" id="pulseSensorStatus">
+        <span class="status-dot" id="pulseStatusDot"></span>
+        <span class="status-text" id="pulseStatusText">未接続</span>
+      </div>
+
+      <!-- Distance sensor mode toggle (USB / WiFi) -->
+      <div class="connection-mode-toggle hidden" id="distanceConnectionToggle">
+        <button class="conn-mode-btn active" id="usbModeBtn" data-conn="usb">USB</button>
+        <button class="conn-mode-btn" id="wifiModeBtn" data-conn="wifi">WiFi</button>
+      </div>
+
+      <!-- USB Distance sensor connect button -->
+      <button class="sensor-btn hidden" id="distanceSensorBtn">
+        <svg class="sensor-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+        </svg>
+        <span id="distanceSensorBtnText">距離センサー接続 (USB)</span>
+      </button>
+
+      <!-- WiFi Distance sensor connect button -->
+      <button class="sensor-btn hidden" id="wifiSensorBtn">
+        <svg class="sensor-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+        </svg>
+        <span id="wifiSensorBtnText">距離センサー接続 (WiFi)</span>
+      </button>
+
+      <!-- WiFi settings -->
+      <div class="wifi-settings hidden" id="wifiSettings">
+        <div class="wifi-instructions">
+          <p>1. WiFiで <strong>"Heartbeat-Distance"</strong> に接続</p>
+          <p>パスワード: <code>12345678</code></p>
+          <p>2. 接続ボタンをクリック</p>
+        </div>
+        <div class="wifi-input-group">
+          <label>IPアドレス:</label>
+          <input type="text" id="wifiIpInput" value="192.168.4.1" placeholder="192.168.4.1">
+        </div>
+      </div>
+
+      <div class="sensor-status hidden" id="distanceSensorStatus">
+        <span class="status-dot" id="distanceStatusDot"></span>
+        <span class="status-text" id="distanceStatusText">未接続</span>
+      </div>
+
+      <!-- Distance display -->
+      <div class="distance-display hidden" id="distanceDisplay">
+        <div class="distance-value-container">
+          <span class="distance-value" id="distanceValue">--</span>
+          <span class="distance-unit">cm</span>
+        </div>
+        <div class="distance-label">測定距離</div>
+        <div class="distance-bar-container">
+          <div class="distance-bar" id="distanceBar"></div>
+        </div>
       </div>
     </main>
 

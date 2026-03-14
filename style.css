@@ -542,6 +542,157 @@ body {
   display: none;
 }
 
+/* ===== Connection Mode Toggle ===== */
+.connection-mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 2px;
+  z-index: 1;
+}
+
+.conn-mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.conn-mode-btn.active {
+  background: var(--accent-dim);
+  color: var(--heart-red-bright);
+}
+
+.conn-mode-btn:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+/* ===== WiFi Settings ===== */
+.wifi-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 280px;
+  z-index: 1;
+}
+
+.wifi-instructions {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.wifi-instructions p {
+  margin: 0.3rem 0;
+}
+
+.wifi-instructions strong {
+  color: var(--heart-red-bright);
+}
+
+.wifi-instructions code {
+  background: var(--bg-primary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  color: var(--text-primary);
+}
+
+.wifi-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.wifi-input-group label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.wifi-input-group input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.wifi-input-group input:focus {
+  border-color: var(--heart-red);
+}
+
+/* ===== Distance Display ===== */
+.distance-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  z-index: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+.distance-value-container {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.distance-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--heart-red-bright);
+  line-height: 1;
+}
+
+.distance-unit {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.distance-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+}
+
+.distance-bar-container {
+  width: 100%;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.distance-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--heart-red), var(--heart-red-bright));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
 /* ===== ECG Container ===== */
 .ecg-container {
   position: fixed;
