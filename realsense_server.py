@@ -1,19 +1,36 @@
 #!/usr/bin/env python3
 """
+ターミナル①（既存）: python realsense_server.py 実行中のまま
+
+ターミナル②（新規）:
+cd c:\project\solo_project\Heartbeat-BPM-Player
+python -m http.server 8080
+Chromeで http://localhost:8080 を開く（file://ではなく）
+
 Intel RealSense D435i WebSocket Server
 距離データをWebアプリへ送信する
 
 必要パッケージ:
     pip install pyrealsense2 websockets numpy
 
-使い方:
+使い方 (ws://) :
     python realsense_server.py
-    → ws://localhost:8765 でWebSocket待受開始
+    → ws://localhost:8765
+
+使い方 (wss:// GitHub Pages対応):
+    1. 証明書生成（初回のみ）:
+       openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+    2. 起動:
+       python realsense_server.py --ssl
+    3. Chromeで https://localhost:8765 を開いて「詳細設定→続行」で証明書を許可
+    4. GitHub Pagesから wss://localhost:8765 で接続
 """
 
+import argparse
 import asyncio
 import json
 import logging
+import ssl
 
 import numpy as np
 import pyrealsense2 as rs
@@ -21,6 +38,10 @@ import websockets
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--ssl", action="store_true", help="Enable WSS (wss://localhost:8765)")
+args = parser.parse_args()
 
 HOST = "localhost"
 PORT = 8765
@@ -98,9 +119,17 @@ async def realsense_handler(websocket):
 
 
 async def main():
-    log.info(f"Starting RealSense WebSocket server on ws://{HOST}:{PORT}")
-    async with websockets.serve(realsense_handler, HOST, PORT):
-        log.info("Server ready. Open the web app and select 'RealSense' mode.")
+    ssl_ctx = None
+    scheme = "ws"
+    if args.ssl:
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_ctx.load_cert_chain("cert.pem", "key.pem")
+        scheme = "wss"
+        log.info("SSL enabled. First visit https://localhost:8765 in Chrome and accept the certificate.")
+
+    log.info(f"Starting RealSense WebSocket server on {scheme}://{HOST}:{PORT}")
+    async with websockets.serve(realsense_handler, HOST, PORT, ssl=ssl_ctx):
+        log.info(f"Server ready. Connect from the web app using {scheme}://localhost:{PORT}")
         await asyncio.Future()  # run forever
 
 
