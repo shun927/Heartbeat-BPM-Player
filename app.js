@@ -35,6 +35,9 @@ class HeartbeatPlayer {
         this.bindEvents();
         this.initECG();
         this.loadAudio();
+        
+        // 初期表示を正しく設定
+        this.updateDistanceSensorUI();
     }
 
     initElements() {
@@ -195,7 +198,9 @@ class HeartbeatPlayer {
         
         // Distance sensor mode UI
         this.distanceConnectionToggle.classList.toggle('hidden', m !== 'distanceSensor');
-        this.updateDistanceSensorUI();
+        if (m === 'distanceSensor') {
+            this.setDistanceConnMode('usb'); // デフォルトはUSBモード
+        }
         document.getElementById('distanceSensorStatus').classList.toggle('hidden', m !== 'distanceSensor');
         this.distanceDisplay.classList.toggle('hidden', m !== 'distanceSensor');
         

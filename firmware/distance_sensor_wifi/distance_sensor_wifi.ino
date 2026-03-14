@@ -1,22 +1,16 @@
 /*
- * HC-SR04 距離センサー + XIAO ESP32 S3 (WiFiモード)
+ * HC-SR04 距離センサー + XIAO ESP32 C6 (WiFiモード)
  * 
  * WebSocketで距離データを送信。ブラウザから接続して距離に応じたBPMで心音を再生。
  * 
- * 接続方法:
- * 1. ESP32がAPモードで起動し、"Heartbeat-Distance"というWiFiネットワークを作成
- * 2. PC/スマホでこのWiFiに接続（パスワード: 12345678）
- * 3. ブラウザで http://192.168.4.1 を開く
- *
- * 配線 (HC-SR04 → XIAO ESP32 S3):
+ * 配線 (HC-SR04 → XIAO ESP32 C6):
  *   VCC  → 5V
  *   GND  → GND
- *   TRIG → GPIO2 (D0)
- *   ECHO → GPIO3 (D1)
+ *   TRIG → D4 (GPIO22)
+ *   ECHO → D5 (GPIO23)
  * 
  * 必要ライブラリ:
  *   - ArduinoWebsockets by Gil Maimon
- *   - WebServer (ESP32標準)
  */
 
 #include <WiFi.h>
@@ -27,9 +21,9 @@
 const char* ssid = "Heartbeat-Distance";
 const char* password = "12345678";
 
-// ピン定義
-const int TRIG_PIN = 2;   // D0
-const int ECHO_PIN = 3;   // D1
+// ピン定義 (XIAO ESP32 C6)
+const int TRIG_PIN = 22;  // D4 (GPIO22)
+const int ECHO_PIN = 23;  // D5 (GPIO23)
 
 // WebSocketサーバー (ポート81)
 WebSocketsServer webSocket = WebSocketsServer(81);
