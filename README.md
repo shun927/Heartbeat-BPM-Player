@@ -70,21 +70,21 @@ npx -y serve . -l 3000
 
 ---
 
-### 2. 距離センサー (HC-SR04 + XIAO ESP32 S3)
+### 2. 距離センサー (HC-SR04 + XIAO ESP32 C6)
 
 #### 必要なもの
-- XIAO ESP32 S3
+- XIAO ESP32 C6
 - HC-SR04 超音波距離センサー
 - USBケーブル (USB-C) - 書き込み用
 
 #### 配線
 
-| HC-SR04 | XIAO ESP32 S3 |
+| HC-SR04 | XIAO ESP32 C6 |
 |---------|---------------|
 | VCC | 5V |
 | GND | GND |
-| TRIG | GPIO2 (D0) |
-| ECHO | GPIO3 (D1) |
+| TRIG | D0 (GPIO0) |
+| ECHO | D1 (GPIO1) |
 
 ---
 

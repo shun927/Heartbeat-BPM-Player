@@ -42,21 +42,21 @@
 
       <!-- BPM Display -->
       <div class="bpm-display">
-        <span class="bpm-value" id="bpmValue">72</span>
+        <span class="bpm-value" id="bpmValue">55</span>
         <span class="bpm-label">BPM</span>
       </div>
 
       <!-- BPM Slider -->
       <div class="slider-container">
         <span class="slider-min">40</span>
-        <input type="range" id="bpmSlider" min="40" max="200" value="72" class="bpm-slider">
+        <input type="range" id="bpmSlider" min="40" max="200" value="55" class="bpm-slider">
         <span class="slider-max">200</span>
       </div>
 
       <!-- Preset buttons -->
       <div class="presets">
         <button class="preset-btn" data-bpm="60">安静時<br><small>60</small></button>
-        <button class="preset-btn active" data-bpm="72">通常<br><small>72</small></button>
+        <button class="preset-btn" data-bpm="72">通常<br><small>72</small></button>
         <button class="preset-btn" data-bpm="100">運動時<br><small>100</small></button>
         <button class="preset-btn" data-bpm="140">激しい運動<br><small>140</small></button>
       </div>
@@ -92,10 +92,11 @@
         <span class="status-text" id="pulseStatusText">未接続</span>
       </div>
 
-      <!-- Distance sensor mode toggle (USB / WiFi) -->
+      <!-- Distance sensor mode toggle (USB / WiFi / RealSense) -->
       <div class="connection-mode-toggle hidden" id="distanceConnectionToggle">
         <button class="conn-mode-btn active" id="usbModeBtn" data-conn="usb">USB</button>
         <button class="conn-mode-btn" id="wifiModeBtn" data-conn="wifi">WiFi</button>
+        <button class="conn-mode-btn" id="realSenseModeBtn" data-conn="realsense">RealSense</button>
       </div>
 
       <!-- USB Distance sensor connect button -->
@@ -113,6 +114,27 @@
         </svg>
         <span id="wifiSensorBtnText">距離センサー接続 (WiFi)</span>
       </button>
+
+      <!-- RealSense connect button -->
+      <button class="sensor-btn hidden" id="realSenseSensorBtn">
+        <svg class="sensor-icon" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+        <span>RealSense D435i 接続</span>
+      </button>
+
+      <!-- RealSense settings -->
+      <div class="wifi-settings hidden" id="realSenseSettings">
+        <div class="wifi-instructions">
+          <p>1. 事前に Python サーバーを起動:</p>
+          <p><code>python realsense_server.py</code></p>
+          <p>2. 接続ボタンをクリック</p>
+        </div>
+        <div class="wifi-input-group">
+          <label>サーバーアドレス:</label>
+          <input type="text" id="realSenseWsInput" value="ws://localhost:8765" placeholder="ws://localhost:8765">
+        </div>
+      </div>
 
       <!-- WiFi settings -->
       <div class="wifi-settings hidden" id="wifiSettings">
@@ -132,22 +154,69 @@
         <span class="status-text" id="distanceStatusText">未接続</span>
       </div>
 
+      <!-- Distance Calibration -->
+      <div class="distance-calibration hidden" id="distanceCalibration">
+        <div class="calibration-title">距離調整</div>
+        <div class="calibration-sliders">
+          <div class="calibration-item">
+            <label class="calibration-label">オフセット <span id="offsetValue">0</span>cm</label>
+            <input type="range" id="distanceOffset" min="-50" max="50" value="0" class="calibration-slider">
+          </div>
+          <div class="calibration-item">
+            <label class="calibration-label">倍率 <span id="scaleValue">1.0</span>x</label>
+            <input type="range" id="distanceScale" min="0.5" max="2.0" step="0.1" value="1.0" class="calibration-slider">
+          </div>
+        </div>
+        <button class="calibration-reset" id="calibrationReset">リセット</button>
+      </div>
+
       <!-- Distance display -->
       <div class="distance-display hidden" id="distanceDisplay">
         <div class="distance-value-container">
           <span class="distance-value" id="distanceValue">--</span>
           <span class="distance-unit">cm</span>
         </div>
-        <div class="distance-label">測定距離</div>
+        <div class="distance-label">測定距離（調整済）</div>
         <div class="distance-bar-container">
           <div class="distance-bar" id="distanceBar"></div>
+        </div>
+      </div>
+
+      <!-- Distance to BPM Mapping Settings -->
+      <div class="distance-mapping hidden" id="distanceMapping">
+        <div class="mapping-title">距離→BPM設定</div>
+        <div class="mapping-sliders">
+          <div class="mapping-item">
+            <label class="mapping-label">反応距離 <span class="mapping-bpm"><span id="maxDistDisplay">200</span>cm</span></label>
+            <div class="mapping-range">
+              <span>50</span>
+              <input type="range" id="maxDistSlider" min="50" max="400" value="200" class="mapping-slider">
+              <span>400cm</span>
+            </div>
+          </div>
+          <div class="mapping-item">
+            <label class="mapping-label">最低BPM（遠時） <span class="mapping-bpm" id="minBpmDisplay">55</span></label>
+            <div class="mapping-range">
+              <span>40</span>
+              <input type="range" id="minBpmSlider" min="40" max="120" value="55" class="mapping-slider">
+              <span>120</span>
+            </div>
+          </div>
+          <div class="mapping-item">
+            <label class="mapping-label">最高BPM（近時） <span class="mapping-bpm" id="maxBpmDisplay">75</span></label>
+            <div class="mapping-range">
+              <span>40</span>
+              <input type="range" id="maxBpmSlider" min="40" max="200" value="75" class="mapping-slider">
+              <span>200</span>
+            </div>
+          </div>
         </div>
       </div>
     </main>
 
     <!-- ECG line at bottom -->
     <div class="ecg-container">
-      <canvas id="ecgCanvas" width="800" height="80"></canvas>
+      <canvas id="ecgCanvas"></canvas>
     </div>
   </div>
 

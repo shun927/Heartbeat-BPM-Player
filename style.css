@@ -32,7 +32,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -44,8 +45,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
+  justify-content: safe center;
+  padding: 2rem 1.5rem 6rem; /* bottom padding for ECG bar */
   position: relative;
   gap: 1.2rem;
 }
@@ -634,6 +635,187 @@ body {
 
 .wifi-input-group input:focus {
   border-color: var(--heart-red);
+}
+
+/* ===== Distance to BPM Mapping ===== */
+.distance-mapping {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 320px;
+  z-index: 1;
+}
+
+.mapping-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+
+.mapping-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mapping-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mapping-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mapping-bpm {
+  color: var(--heart-red-bright);
+  font-weight: 600;
+}
+
+.mapping-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.mapping-range span {
+  min-width: 24px;
+  text-align: center;
+}
+
+.mapping-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+}
+
+.mapping-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--heart-red);
+  cursor: pointer;
+}
+
+.mapping-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--heart-red);
+  cursor: pointer;
+  border: none;
+}
+
+.mapping-min {
+  opacity: 0.7;
+}
+
+/* ===== Distance Calibration ===== */
+.distance-calibration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 320px;
+  z-index: 1;
+}
+
+.calibration-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.calibration-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.calibration-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.calibration-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+}
+
+.calibration-label span {
+  color: var(--heart-red-bright);
+  font-weight: 600;
+}
+
+.calibration-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+}
+
+.calibration-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--heart-red);
+  cursor: pointer;
+}
+
+.calibration-reset {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.3rem;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.calibration-reset:hover {
+  background: var(--accent-dim);
+  color: var(--heart-red-bright);
 }
 
 /* ===== Distance Display ===== */
