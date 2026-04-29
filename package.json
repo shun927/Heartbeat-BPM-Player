@@ -1,0 +1,14 @@
+{
+  "name": "heartbeat-bpm-player",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Heartbeat BPM player with Web Audio, Web Serial, WebSocket sensors, and RealSense support.",
+  "scripts": {
+    "dev": "serve . -l 3000",
+    "start": "serve . -l 3000",
+    "realsense": "python realsense_server.py"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
