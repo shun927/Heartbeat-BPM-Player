@@ -154,20 +154,63 @@
         <span class="status-text" id="distanceStatusText">未接続</span>
       </div>
 
-      <!-- Distance Calibration -->
-      <div class="distance-calibration hidden" id="distanceCalibration">
-        <div class="calibration-title">距離調整</div>
-        <div class="calibration-sliders">
-          <div class="calibration-item">
-            <label class="calibration-label">オフセット <span id="offsetValue">0</span>cm</label>
-            <input type="range" id="distanceOffset" min="-50" max="50" value="0" class="calibration-slider">
+      <button class="distance-settings-toggle hidden" id="distanceSettingsToggle" type="button"
+        aria-expanded="false" aria-controls="distanceAdvanced">
+        <span>詳細設定</span>
+        <span class="settings-toggle-icon" aria-hidden="true">＋</span>
+      </button>
+
+      <div class="distance-advanced hidden" id="distanceAdvanced">
+        <!-- Distance Calibration -->
+        <div class="distance-calibration hidden" id="distanceCalibration">
+          <div class="calibration-title">距離調整</div>
+          <div class="calibration-sliders">
+            <div class="calibration-item">
+              <label class="calibration-label">オフセット <span id="offsetValue">0</span>cm</label>
+              <input type="range" id="distanceOffset" min="-50" max="50" value="0" class="calibration-slider">
+            </div>
+            <div class="calibration-item">
+              <label class="calibration-label">倍率 <span id="scaleValue">1.0</span>x</label>
+              <input type="range" id="distanceScale" min="0.5" max="2.0" step="0.1" value="1.0"
+                class="calibration-slider">
+            </div>
           </div>
-          <div class="calibration-item">
-            <label class="calibration-label">倍率 <span id="scaleValue">1.0</span>x</label>
-            <input type="range" id="distanceScale" min="0.5" max="2.0" step="0.1" value="1.0" class="calibration-slider">
+          <button class="calibration-reset" id="calibrationReset">リセット</button>
+        </div>
+
+        <!-- Distance to BPM Mapping Settings -->
+        <div class="distance-mapping hidden" id="distanceMapping">
+          <div class="mapping-title">距離→BPM設定</div>
+          <div class="mapping-sliders">
+            <div class="mapping-item">
+              <label class="mapping-label">反応距離 <span class="mapping-bpm"><span
+                    id="maxDistDisplay">200</span>cm</span></label>
+              <div class="mapping-range">
+                <span>50</span>
+                <input type="range" id="maxDistSlider" min="50" max="400" value="200" class="mapping-slider">
+                <span>400cm</span>
+              </div>
+            </div>
+            <div class="mapping-item">
+              <label class="mapping-label">最低BPM（遠時） <span class="mapping-bpm"
+                  id="minBpmDisplay">55</span></label>
+              <div class="mapping-range">
+                <span>40</span>
+                <input type="range" id="minBpmSlider" min="40" max="120" value="55" class="mapping-slider">
+                <span>120</span>
+              </div>
+            </div>
+            <div class="mapping-item">
+              <label class="mapping-label">最高BPM（近時） <span class="mapping-bpm"
+                  id="maxBpmDisplay">75</span></label>
+              <div class="mapping-range">
+                <span>40</span>
+                <input type="range" id="maxBpmSlider" min="40" max="200" value="75" class="mapping-slider">
+                <span>200</span>
+              </div>
+            </div>
           </div>
         </div>
-        <button class="calibration-reset" id="calibrationReset">リセット</button>
       </div>
 
       <!-- Distance display -->
@@ -181,37 +224,6 @@
           <div class="distance-bar" id="distanceBar"></div>
         </div>
       </div>
-
-      <!-- Distance to BPM Mapping Settings -->
-      <div class="distance-mapping hidden" id="distanceMapping">
-        <div class="mapping-title">距離→BPM設定</div>
-        <div class="mapping-sliders">
-          <div class="mapping-item">
-            <label class="mapping-label">反応距離 <span class="mapping-bpm"><span id="maxDistDisplay">200</span>cm</span></label>
-            <div class="mapping-range">
-              <span>50</span>
-              <input type="range" id="maxDistSlider" min="50" max="400" value="200" class="mapping-slider">
-              <span>400cm</span>
-            </div>
-          </div>
-          <div class="mapping-item">
-            <label class="mapping-label">最低BPM（遠時） <span class="mapping-bpm" id="minBpmDisplay">55</span></label>
-            <div class="mapping-range">
-              <span>40</span>
-              <input type="range" id="minBpmSlider" min="40" max="120" value="55" class="mapping-slider">
-              <span>120</span>
-            </div>
-          </div>
-          <div class="mapping-item">
-            <label class="mapping-label">最高BPM（近時） <span class="mapping-bpm" id="maxBpmDisplay">75</span></label>
-            <div class="mapping-range">
-              <span>40</span>
-              <input type="range" id="maxBpmSlider" min="40" max="200" value="75" class="mapping-slider">
-              <span>200</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
 
     <!-- ECG line at bottom -->
@@ -220,7 +232,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260620-2"></script>
 </body>
 
 </html>

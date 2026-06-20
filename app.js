@@ -43,6 +43,7 @@ class HeartbeatPlayer {
         this.bindEvents();
         this.loadAudio();
         this.initECG();
+        window.addEventListener('resize', () => this.resizeECG());
     }
 
     // ===== Element References =====
@@ -89,6 +90,8 @@ class HeartbeatPlayer {
         this.distanceDisplay      = document.getElementById('distanceDisplay');
         this.distanceValue        = document.getElementById('distanceValue');
         this.distanceBar          = document.getElementById('distanceBar');
+        this.distanceSettingsToggle = document.getElementById('distanceSettingsToggle');
+        this.distanceAdvanced     = document.getElementById('distanceAdvanced');
 
         // Calibration
         this.distanceCalibration = document.getElementById('distanceCalibration');
@@ -231,6 +234,7 @@ class HeartbeatPlayer {
         this.usbModeBtn.addEventListener('click', () => this.setDistanceConnMode('usb'));
         this.wifiModeBtn.addEventListener('click', () => this.setDistanceConnMode('wifi'));
         this.realSenseModeBtn.addEventListener('click', () => this.setDistanceConnMode('realsense'));
+        this.distanceSettingsToggle.addEventListener('click', () => this.toggleDistanceSettings());
 
         // Calibration
         this.distanceOffset.addEventListener('input', (e) => {
@@ -288,13 +292,26 @@ class HeartbeatPlayer {
         this.distanceConnectionToggle.classList.toggle('hidden', m !== 'distanceSensor');
         this.distanceSensorStatus.classList.toggle('hidden', m !== 'distanceSensor');
         this.distanceDisplay.classList.toggle('hidden', m !== 'distanceSensor');
+        this.distanceSettingsToggle.classList.toggle('hidden', m !== 'distanceSensor');
         this.distanceCalibration.classList.toggle('hidden', m !== 'distanceSensor');
         this.distanceMapping.classList.toggle('hidden', m !== 'distanceSensor');
 
-        if (m === 'distanceSensor') this.setDistanceConnMode('usb');
+        // Connection-specific controls must never leak into another mode.
+        if (m === 'distanceSensor') {
+            this.closeDistanceSettings();
+            this.setDistanceConnMode('usb');
+        } else {
+            this.distanceSensorBtn.classList.add('hidden');
+            this.wifiSensorBtn.classList.add('hidden');
+            this.realSenseSensorBtn.classList.add('hidden');
+            this.wifiSettings.classList.add('hidden');
+            this.realSenseSettings.classList.add('hidden');
+            this.closeDistanceSettings();
+        }
     }
 
     setDistanceConnMode(mode) {
+        if (this.mode !== 'distanceSensor') return;
         this.distanceConnMode = mode;
         this.usbModeBtn.classList.toggle('active', mode === 'usb');
         this.wifiModeBtn.classList.toggle('active', mode === 'wifi');
@@ -304,6 +321,25 @@ class HeartbeatPlayer {
         this.wifiSettings.classList.toggle('hidden', mode !== 'wifi');
         this.realSenseSensorBtn.classList.toggle('hidden', mode !== 'realsense');
         this.realSenseSettings.classList.toggle('hidden', mode !== 'realsense');
+    }
+
+    toggleDistanceSettings() {
+        const willOpen = this.distanceAdvanced.classList.contains('hidden');
+        this.distanceAdvanced.classList.toggle('hidden', !willOpen);
+        this.distanceSettingsToggle.classList.toggle('active', willOpen);
+        this.distanceSettingsToggle.setAttribute('aria-expanded', String(willOpen));
+        this.distanceSettingsToggle.querySelector('span:first-child').textContent =
+            willOpen ? '詳細設定を閉じる' : '詳細設定';
+        this.distanceSettingsToggle.querySelector('.settings-toggle-icon').textContent =
+            willOpen ? '−' : '＋';
+    }
+
+    closeDistanceSettings() {
+        this.distanceAdvanced.classList.add('hidden');
+        this.distanceSettingsToggle.classList.remove('active');
+        this.distanceSettingsToggle.setAttribute('aria-expanded', 'false');
+        this.distanceSettingsToggle.querySelector('span:first-child').textContent = '詳細設定';
+        this.distanceSettingsToggle.querySelector('.settings-toggle-icon').textContent = '＋';
     }
 
     // ===== Distance → BPM =====
@@ -659,19 +695,30 @@ class HeartbeatPlayer {
 
     // ===== ECG: Scrolling PQRST Waveform =====
     initECG() {
-        // Set canvas resolution to actual display size
-        const rect = this.ecgCanvas.getBoundingClientRect();
-        this.ecgCanvas.width  = rect.width  || 800;
-        this.ecgCanvas.height = rect.height || 80;
-        this.ecgW = this.ecgCanvas.width;
-        this.ecgH = this.ecgCanvas.height;
-
-        this.ecgData  = new Array(this.ecgW).fill(0);
+        this.resizeECG();
         this.pqrst    = this.buildPQRST();
         this.ecgPhase = 0;      // 0-1: position within one cardiac cycle
         this.ecgLastTs = null;
 
         requestAnimationFrame((ts) => this.drawECG(ts));
+    }
+
+    resizeECG() {
+        const rect = this.ecgCanvas.getBoundingClientRect();
+        const nextW = Math.max(1, Math.round(rect.width || 800));
+        const nextH = Math.max(1, Math.round(rect.height || 80));
+        const previous = this.ecgData || [];
+
+        this.ecgCanvas.width = nextW;
+        this.ecgCanvas.height = nextH;
+        this.ecgW = nextW;
+        this.ecgH = nextH;
+
+        if (previous.length >= nextW) {
+            this.ecgData = previous.slice(previous.length - nextW);
+        } else {
+            this.ecgData = new Array(nextW - previous.length).fill(0).concat(previous);
+        }
     }
 
     // Pre-compute one PQRST cycle (normalized 0-1 amplitude)
